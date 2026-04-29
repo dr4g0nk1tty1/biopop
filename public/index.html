@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BIO POP™ — A Cabinet of Curiosities for the Synthetic Age</title>
+<style>
+  :root {
+    --pink: #FF2D88;
+    --pink-soft: #FFD6E8;
+    --lavender: #E0CFFF;
+    --mint: #D4F4DD;
+    --tiffany: #0ABAB5;
+    --gold: #D4AF37;
+    --chrome-1: #f8f8fb;
+    --chrome-2: #d8d8e2;
+    --chrome-3: #a8a8b8;
+    --ink: #1a0a1f;
+    --serif: 'Didot', 'Bodoni 72', 'Playfair Display', Georgia, serif;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    font-family: var(--sans);
+    background: linear-gradient(135deg, var(--pink-soft) 0%, var(--lavender) 50%, var(--mint) 100%);
+    background-attachment: fixed;
+    color: var(--ink);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  .marquee { text-align: center; padding: 32px 16px 12px; position: relative; }
+  .wordmark {
+    font-family: var(--serif);
+    font-size: clamp(56px, 11vw, 144px);
+    font-weight: 400;
+    letter-spacing: -0.04em;
+    line-height: 0.9;
+    background: linear-gradient(180deg, var(--pink) 0%, #b8125f 60%, var(--gold) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 2px 0 rgba(255,255,255,0.6));
+  }
+  .wordmark sup { font-size: 0.25em; vertical-align: super; -webkit-text-fill-color: var(--pink); }
+  .subtitle {
+    font-family: var(--serif); font-style: italic;
+    font-size: clamp(14px, 1.6vw, 20px);
+    letter-spacing: 0.02em; color: #5a2746; margin-top: 8px;
+  }
+  .smallcaps {
+    font-family: var(--sans); font-size: 11px;
+    letter-spacing: 0.32em; text-transform: uppercase;
+    color: #7a3a5e; margin-top: 6px;
+  }
+  .api-status {
+    display: inline-block; margin: 10px auto 0;
+    font-size: 10px; letter-spacing: 0.2em;
+    padding: 4px 12px; border-radius: 999px;
+    background: rgba(255,255,255,0.6); border: 1px solid rgba(0,0,0,0.1);
+    color: #888;
+  }
+  .api-status.ok { color: #064847; border-color: var(--tiffany); background: rgba(10,186,181,0.1); }
+  .api-status.err { color: #6a1240; border-color: var(--pink); background: rgba(255,45,136,0.1); }
+
+  .plaque {
+    display: inline-block;
+    background: linear-gradient(180deg, #f0e3b8 0%, #d4af37 50%, #a08020 100%);
+    border: 1px solid #6b5510; border-radius: 4px;
+    padding: 4px 14px;
+    font-family: var(--serif); font-style: italic; font-size: 11px;
+    color: #3d2c08;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 1px 2px rgba(0,0,0,0.2);
+    letter-spacing: 0.05em;
+  }
+
+  .machine {
+    max-width: 1280px; margin: 16px auto 32px;
+    padding: 0 24px;
+    display: grid;
+    grid-template-columns: 1fr 1.4fr 1fr;
+    gap: 20px; align-items: stretch;
+  }
+  @media (max-width: 1024px) { .machine { grid-template-columns: 1fr; } }
+  .panel {
+    background: linear-gradient(160deg, var(--chrome-1) 0%, var(--chrome-2) 50%, var(--chrome-3) 100%);
+    border: 2px solid #888; border-radius: 18px; padding: 18px;
+    box-shadow:
+      inset 0 2px 4px rgba(255,255,255,0.8),
+      inset 0 -2px 4px rgba(0,0,0,0.15),
+      0 8px 24px rgba(154, 60, 120, 0.18);
+    position: relative;
+  }
+  .panel-header {
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid rgba(0,0,0,0.15);
+    padding-bottom: 10px; margin-bottom: 14px;
+  }
+  .panel-title { font-family: var(--serif); font-size: 22px; color: #2a0a1c; }
+  .panel-num { font-family: var(--sans); font-size: 10px; letter-spacing: 0.3em; color: #6a4555; }
+
+  .input-zone { display: flex; flex-direction: column; gap: 14px; }
+  .input-display {
+    aspect-ratio: 3/4;
+    background: #2a0a1c;
+    border: 4px solid var(--chrome-3);
+    border-radius: 12px;
+    position: relative; overflow: hidden;
+    box-shadow: inset 0 0 30px rgba(255,45,136,0.3);
+  }
+  .input-display .placeholder {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    color: #f5b8d0; text-align: center; padding: 16px;
+    font-family: var(--serif); font-style: italic;
+    font-size: 16px; line-height: 1.5;
+  }
+  .input-display canvas, .input-display video, .input-display img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+  }
+  .scanlines {
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent 0, transparent 3px, rgba(255,45,136,0.06) 3px, rgba(255,45,136,0.06) 4px);
+    pointer-events: none; mix-blend-mode: screen;
+  }
+  .input-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .pill-btn {
+    appearance: none; border: 2px solid var(--pink);
+    background: linear-gradient(180deg, #fff 0%, var(--pink-soft) 100%);
+    color: #6b1240;
+    font-family: var(--sans); font-size: 11px;
+    letter-spacing: 0.18em; text-transform: uppercase; font-weight: 600;
+    padding: 11px 8px; border-radius: 999px; cursor: pointer;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 2px 4px rgba(255,45,136,0.2);
+    transition: transform 0.1s;
+  }
+  .pill-btn:hover { transform: translateY(-1px); }
+  .pill-btn:active { transform: translateY(1px); }
+  .pill-btn:disabled { opacity: 0.5; cursor: wait; }
+  .pill-btn.material-self { border-color: #c41970; background: linear-gradient(180deg, #fff 0%, #ffc4dd 100%); }
+  .pill-btn.material-synth { border-color: var(--tiffany); background: linear-gradient(180deg, #fff 0%, #c4f0ee 100%); color: #064847; }
+  .material-tag {
+    text-align: center;
+    font-family: var(--sans); font-size: 10px;
+    letter-spacing: 0.32em; text-transform: uppercase; color: #6a4555;
+    background: rgba(255,255,255,0.5);
+    padding: 6px; border-radius: 6px;
+  }
+
+  .center-panel {
+    background: linear-gradient(160deg, #f4d6e2 0%, #d8a5c0 50%, #b07595 100%);
+    display: flex; flex-direction: column; align-items: center;
+    padding: 24px 18px;
+  }
+  .organ { width: 100%; max-width: 360px; margin: 0 auto; }
+  .pipes-row {
+    display: grid; grid-template-columns: repeat(8, 1fr);
+    gap: 4px; height: 90px; margin-bottom: 12px;
+  }
+  .pipe {
+    background: linear-gradient(180deg, #fff 0%, #e8d5e0 30%, var(--chrome-3) 100%);
+    border: 1px solid #888; border-radius: 4px 4px 0 0;
+    box-shadow: inset -2px 0 4px rgba(0,0,0,0.15), inset 2px 0 4px rgba(255,255,255,0.7);
+    position: relative; overflow: hidden;
+  }
+  .pipe::after {
+    content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+    height: var(--pipe-fill, 0%);
+    background: linear-gradient(180deg, var(--pink) 0%, var(--gold) 100%);
+    transition: height 0.4s ease;
+  }
+  .viewing-window {
+    aspect-ratio: 1/1; width: 100%;
+    background: radial-gradient(circle at 30% 30%, #fff5fb 0%, #f0a8c8 70%, #2a0a1c 100%);
+    border: 6px solid var(--gold); border-radius: 14px;
+    position: relative; overflow: hidden;
+    box-shadow: inset 0 0 40px rgba(0,0,0,0.4), 0 4px 16px rgba(0,0,0,0.25);
+    margin-bottom: 16px;
+  }
+  .viewing-window canvas, .viewing-window img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+  }
+  .viewing-window .empty-text {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--serif); font-style: italic;
+    color: rgba(255,255,255,0.7);
+    text-align: center; padding: 16px; font-size: 14px;
+    letter-spacing: 0.05em;
+  }
+  .loading-overlay {
+    position: absolute; inset: 0;
+    background: rgba(26,10,31,0.85);
+    display: none; flex-direction: column;
+    align-items: center; justify-content: center;
+    color: var(--gold);
+    font-family: var(--serif); font-style: italic;
+    z-index: 10;
+  }
+  .loading-overlay.show { display: flex; }
+  .loading-overlay .spinner {
+    width: 48px; height: 48px;
+    border: 3px solid rgba(212, 175, 55, 0.2);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 14px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-overlay .text { font-size: 13px; letter-spacing: 0.15em; text-align: center; padding: 0 16px; }
+  .loading-overlay .latin { font-size: 11px; opacity: 0.7; margin-top: 6px; }
+
+  .assemble-btn {
+    appearance: none;
+    border: 3px solid var(--gold);
+    background: linear-gradient(180deg, var(--pink) 0%, #b8125f 100%);
+    color: white;
+    font-family: var(--serif); font-size: 22px;
+    letter-spacing: 0.1em;
+    padding: 14px 36px; border-radius: 999px; cursor: pointer;
+    box-shadow: 0 4px 12px rgba(184, 18, 95, 0.4), inset 0 1px 0 rgba(255,255,255,0.4);
+    text-transform: uppercase; transition: transform 0.1s;
+  }
+  .assemble-btn:hover { transform: translateY(-2px); }
+  .assemble-btn:active { transform: translateY(1px); }
+  .assemble-btn:disabled {
+    background: linear-gradient(180deg, #aaa 0%, #777 100%);
+    border-color: #999; cursor: not-allowed; opacity: 0.6;
+  }
+  .stops-row {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 6px; margin-top: 14px;
+  }
+  .stop {
+    aspect-ratio: 1/1; border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #fff 0%, var(--gold) 60%, #6b5510 100%);
+    border: 2px solid #6b5510;
+    box-shadow: inset 0 -2px 4px rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.2);
+    cursor: pointer; position: relative;
+  }
+  .stop::after {
+    content: attr(data-label);
+    position: absolute; bottom: -16px; left: 50%; transform: translateX(-50%);
+    font-size: 8px; letter-spacing: 0.15em;
+    color: #3d2c08; text-transform: uppercase;
+    white-space: nowrap; font-family: var(--serif);
+  }
+
+  .catalog-panel { display: flex; flex-direction: column; }
+  .ordo { margin-bottom: 12px; }
+  .ordo-label {
+    font-family: var(--serif); font-style: italic;
+    font-size: 11px; color: #4a1530;
+    border-bottom: 1px solid rgba(74,21,48,0.3);
+    padding-bottom: 4px; margin-bottom: 6px;
+    letter-spacing: 0.04em;
+  }
+  .ordo-en {
+    font-family: var(--sans); font-size: 9px;
+    letter-spacing: 0.2em; color: #888;
+    text-transform: uppercase; font-style: normal;
+  }
+  .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .product-card {
+    background: linear-gradient(180deg, #fff 0%, var(--pink-soft) 100%);
+    border: 1px solid var(--pink); border-radius: 8px;
+    padding: 8px 10px; cursor: pointer;
+    transition: all 0.15s; position: relative;
+  }
+  .product-card:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(255,45,136,0.3); }
+  .product-card.selected {
+    background: linear-gradient(180deg, var(--pink) 0%, #b8125f 100%);
+    border-color: var(--gold); color: white;
+  }
+  .product-card.selected .product-price { color: var(--gold); }
+  .product-name {
+    font-family: var(--serif); font-size: 13px;
+    font-weight: 500; letter-spacing: 0.06em;
+  }
+  .product-tagline {
+    font-size: 9px; color: #6a3550;
+    font-style: italic; margin: 2px 0 4px; line-height: 1.3;
+  }
+  .product-card.selected .product-tagline { color: rgba(255,255,255,0.85); }
+  .product-price {
+    font-family: var(--sans); font-size: 10px;
+    color: #b8125f; font-weight: 600; letter-spacing: 0.05em;
+  }
+
+  .lower-deck {
+    max-width: 1280px; margin: 0 auto 40px;
+    padding: 0 24px;
+    display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px;
+  }
+  @media (max-width: 1024px) { .lower-deck { grid-template-columns: 1fr; } }
+  .drawer {
+    background: linear-gradient(160deg, var(--chrome-1) 0%, var(--chrome-2) 50%, var(--chrome-3) 100%);
+    border: 2px solid #888; border-radius: 14px; overflow: hidden;
+  }
+  .drawer-handle {
+    background: linear-gradient(180deg, #f0e3b8 0%, #d4af37 50%, #a08020 100%);
+    padding: 12px 18px; cursor: pointer;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid #6b5510;
+  }
+  .drawer-handle h3 {
+    font-family: var(--serif); font-size: 18px;
+    color: #2a0a1c; font-weight: 400; letter-spacing: 0.06em;
+  }
+  .drawer-handle .toggle {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: #2a0a1c; color: var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--serif); font-size: 16px;
+    transition: transform 0.3s;
+  }
+  .drawer.open .toggle { transform: rotate(45deg); }
+  .drawer-body {
+    max-height: 0; overflow: hidden;
+    transition: max-height 0.5s ease;
+    padding: 0 18px; background: #fffaf2;
+  }
+  .drawer.open .drawer-body { max-height: 800px; padding: 18px; overflow-y: auto; }
+  .biblio-section { margin-bottom: 16px; }
+  .biblio-heading {
+    font-family: var(--serif); font-size: 14px;
+    font-style: italic; color: #4a1530;
+    margin-bottom: 6px; letter-spacing: 0.05em;
+    border-bottom: 1px dotted #aaa; padding-bottom: 4px;
+  }
+  .biblio-entry {
+    font-size: 11px; line-height: 1.6;
+    color: #3a3030; margin-bottom: 6px;
+    padding-left: 16px; text-indent: -16px;
+  }
+  .biblio-entry em { color: #6a1240; }
+  .biblio-entry .tag {
+    display: inline-block; background: var(--pink);
+    color: white; font-size: 8px;
+    padding: 1px 5px; border-radius: 3px;
+    margin-right: 4px; letter-spacing: 0.1em;
+    vertical-align: middle;
+  }
+  .biblio-entry .tag.kircher { background: var(--gold); color: #2a0a1c; }
+  .biblio-entry .tag.theory { background: var(--tiffany); }
+  .biblio-entry .tag.case { background: #c41970; }
+
+  .gallery {
+    background: linear-gradient(160deg, var(--chrome-1) 0%, var(--chrome-2) 50%, var(--chrome-3) 100%);
+    border: 2px solid #888; border-radius: 14px; padding: 14px;
+  }
+  .gallery h3 {
+    font-family: var(--serif); font-size: 18px;
+    color: #2a0a1c; font-weight: 400; margin-bottom: 4px;
+  }
+  .gallery .sub {
+    font-size: 10px; color: #6a4555;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .gallery-grid {
+    display: grid; grid-template-columns: repeat(6, 1fr);
+    gap: 4px; max-height: 300px; overflow-y: auto;
+    padding: 4px; background: #2a0a1c; border-radius: 8px;
+  }
+  .gallery-item {
+    aspect-ratio: 1/1; background: var(--chrome-3);
+    border-radius: 4px; position: relative; overflow: hidden;
+  }
+  .gallery-item canvas, .gallery-item img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+  }
+  .gallery-item .badge {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    font-size: 7px; text-align: center;
+    background: rgba(0,0,0,0.7); color: var(--gold);
+    letter-spacing: 0.1em; padding: 1px 0;
+  }
+  .gallery-empty {
+    grid-column: 1 / -1;
+    text-align: center; color: #f5b8d0;
+    font-family: var(--serif); font-style: italic;
+    font-size: 13px; padding: 40px 16px;
+  }
+
+  .modal-veil {
+    position: fixed; inset: 0;
+    background: rgba(20, 5, 20, 0.7);
+    display: none; align-items: center; justify-content: center;
+    z-index: 100; padding: 20px;
+  }
+  .modal-veil.show { display: flex; }
+  .modal-card {
+    background: #fffaf2;
+    border: 4px solid var(--gold);
+    border-radius: 16px; padding: 28px;
+    max-width: 480px; width: 100%;
+    max-height: 90vh; overflow-y: auto;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .modal-close {
+    position: absolute; top: 12px; right: 12px;
+    background: var(--pink); color: white;
+    border: none; width: 28px; height: 28px;
+    border-radius: 50%; cursor: pointer; font-size: 16px;
+  }
+  .receipt-header {
+    text-align: center; border-bottom: 2px dotted #888;
+    padding-bottom: 12px; margin-bottom: 14px;
+  }
+  .receipt-header .biopop {
+    font-family: var(--serif); font-size: 28px;
+    background: linear-gradient(180deg, var(--pink) 0%, var(--gold) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .receipt-header .sub {
+    font-size: 9px; letter-spacing: 0.3em;
+    color: #888; margin-top: 4px;
+  }
+  .receipt-body {
+    font-family: 'Courier New', monospace;
+    font-size: 12px; line-height: 1.8;
+  }
+  .receipt-row {
+    display: flex; justify-content: space-between;
+    border-bottom: 1px dotted #ccc; padding: 2px 0;
+  }
+  .receipt-row .label { color: #888; }
+  .receipt-image {
+    margin: 14px 0; aspect-ratio: 1/1;
+    background: var(--chrome-3);
+    border: 2px solid var(--gold); border-radius: 8px;
+    overflow: hidden;
+  }
+  .receipt-image canvas, .receipt-image img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+  }
+  .receipt-footer {
+    margin-top: 14px; text-align: center;
+    font-family: var(--serif); font-style: italic;
+    font-size: 11px; color: #6a3550;
+    border-top: 2px dotted #888; padding-top: 12px;
+  }
+  .latin-final {
+    font-family: var(--serif); font-style: italic;
+    font-size: 13px; color: #4a1530;
+    text-align: center; margin-top: 8px;
+  }
+  .latin-final-trans {
+    font-size: 9px; color: #888;
+    letter-spacing: 0.15em; margin-top: 2px;
+  }
+
+  .harmonia-btn {
+    position: fixed; bottom: 20px; right: 20px;
+    background: radial-gradient(circle at 30% 30%, #fff 0%, var(--gold) 60%, #6b5510 100%);
+    border: 3px solid #6b5510;
+    width: 64px; height: 64px; border-radius: 50%;
+    cursor: pointer; z-index: 50;
+    font-family: var(--serif); font-size: 11px;
+    color: #2a0a1c; letter-spacing: 0.1em;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    transition: transform 0.2s;
+  }
+  .harmonia-btn:hover { transform: rotate(15deg) scale(1.05); }
+
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+  .assembling .pipe::after { animation: pulse 0.6s infinite; }
+
+  .bottom-plaque {
+    text-align: center;
+    padding: 24px 16px 80px;
+    color: #4a1530;
+  }
+  .bottom-plaque .latin {
+    font-family: var(--serif); font-style: italic;
+    font-size: 18px; letter-spacing: 0.08em;
+  }
+  .bottom-plaque .trans {
+    font-size: 10px; letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: #888; margin-top: 4px;
+  }
+  .bottom-plaque .credit {
+    font-size: 10px; color: #6a4555;
+    margin-top: 16px; letter-spacing: 0.15em;
+  }
+
+  .micro-label { text-align: center; margin-bottom: 10px; }
+  input[type="file"] { display: none; }
+
+  .toast {
+    position: fixed; top: 20px; left: 50%;
+    transform: translateX(-50%) translateY(-100px);
+    background: #2a0a1c; color: white;
+    padding: 12px 24px; border-radius: 999px;
+    border: 2px solid var(--pink);
+    font-size: 13px; letter-spacing: 0.1em;
+    z-index: 200;
+    transition: transform 0.3s ease;
+    max-width: 90vw;
+    text-align: center;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.error { border-color: #ff4444; }
+</style>
+</head>
+<body>
+
+<header class="marquee">
+  <div class="wordmark">BIO POP<sup>™</sup></div>
+  <div class="subtitle">A Cabinet of Curiosities for the Synthetic Age</div>
+  <div class="smallcaps">Build Your Woman · Console No. I · MMXXVI</div>
+  <div><span class="api-status" id="apiStatus">connecting to atelier…</span></div>
+</header>
+
+<section class="machine">
+
+  <!-- LEFT: MATERIA PRIMA -->
+  <div class="panel input-zone">
+    <div class="micro-label">
+      <span class="plaque">Materia Prima · the first matter</span>
+    </div>
+    <div class="panel-header">
+      <div class="panel-title">I. Input</div>
+      <div class="panel-num">REG. I</div>
+    </div>
+
+    <div class="input-display" id="inputDisplay">
+      <div class="placeholder" id="inputPlaceholder">
+        Insert raw material<br/>
+        <span style="font-size:11px; letter-spacing:0.2em; opacity:0.7;">— SELF OR SYNTHETIC —</span>
+      </div>
+      <canvas id="inputCanvas" style="display:none;"></canvas>
+      <div class="scanlines"></div>
+    </div>
+
+    <div class="input-buttons">
+      <button class="pill-btn material-self" id="btnSelf" onclick="document.getElementById('fileInput').click()">Use My Face</button>
+      <button class="pill-btn material-synth" id="btnSynth" onclick="generateSynthetic()">Generate Woman</button>
+    </div>
+    <input type="file" id="fileInput" accept="image/*" onchange="handleFileUpload(event)" />
+
+    <div class="material-tag" id="materialTag">Material: —</div>
+
+    <div style="margin-top:auto; padding-top:12px; font-size:10px; color:#6a4555; line-height:1.5; font-style: italic; font-family: var(--serif);">
+      "Our machines are disturbingly lively, and we ourselves frighteningly inert." — Donna Haraway, <em>A Cyborg Manifesto</em>, 1985
+    </div>
+  </div>
+
+  <!-- CENTER: THE ORGAN -->
+  <div class="panel center-panel">
+    <div class="micro-label">
+      <span class="plaque">Organum Synthetica · the synthetic organ</span>
+    </div>
+    <div class="organ">
+      <div class="pipes-row" id="pipesRow">
+        <div class="pipe"></div><div class="pipe"></div><div class="pipe"></div><div class="pipe"></div>
+        <div class="pipe"></div><div class="pipe"></div><div class="pipe"></div><div class="pipe"></div>
+      </div>
+
+      <div class="viewing-window" id="viewingWindow">
+        <img id="outputImage" style="display:none;" alt="" />
+        <div class="empty-text" id="windowEmpty">awaiting input + form</div>
+        <div class="loading-overlay" id="loadingOverlay">
+          <div class="spinner"></div>
+          <div class="text" id="loadingText">composing</div>
+          <div class="latin" id="loadingLatin">opus in fieri</div>
+        </div>
+      </div>
+
+      <div style="text-align:center;">
+        <button class="assemble-btn" id="assembleBtn" onclick="assemble()" disabled>Assemble</button>
+      </div>
+
+      <div class="stops-row">
+        <div class="stop" data-label="VOX"></div>
+        <div class="stop" data-label="FORMA"></div>
+        <div class="stop" data-label="USUS"></div>
+        <div class="stop" data-label="OPUS"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: CATALOGUS -->
+  <div class="panel catalog-panel">
+    <div class="micro-label">
+      <span class="plaque">Catalogus Mulierum Utilium · catalog of useful women</span>
+    </div>
+    <div class="panel-header">
+      <div class="panel-title">II. Form</div>
+      <div class="panel-num">REG. II</div>
+    </div>
+
+    <div class="ordo">
+      <div class="ordo-label">Ordo I — Instrumenta Domestica <span class="ordo-en">· domestic instruments</span></div>
+      <div class="product-grid">
+        <div class="product-card" data-product="chair" onclick="selectProduct(this)">
+          <div class="product-name">CHAIR</div>
+          <div class="product-tagline">"Ergonomic. Load-tested."</div>
+          <div class="product-price">$1,299</div>
+        </div>
+        <div class="product-card" data-product="lamp" onclick="selectProduct(this)">
+          <div class="product-name">LAMP</div>
+          <div class="product-tagline">"Ambient. Dimmable."</div>
+          <div class="product-price">$749</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ordo">
+      <div class="ordo-label">Ordo II — Instrumenta Acustica <span class="ordo-en">· sound instruments</span></div>
+      <div class="product-grid">
+        <div class="product-card" data-product="confidante" onclick="selectProduct(this)">
+          <div class="product-name">CONFIDANTE</div>
+          <div class="product-tagline">"Always agreeing."</div>
+          <div class="product-price">$14.99/mo</div>
+        </div>
+        <div class="product-card" data-product="musicbox" onclick="selectProduct(this)">
+          <div class="product-name">MUSIC BOX</div>
+          <div class="product-tagline">"Sings on demand."</div>
+          <div class="product-price">$2,400</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ordo">
+      <div class="ordo-label">Ordo III — Instrumenta Specularia <span class="ordo-en">· mirror instruments</span></div>
+      <div class="product-grid">
+        <div class="product-card" data-product="mirror" onclick="selectProduct(this)">
+          <div class="product-name">MIRROR</div>
+          <div class="product-tagline">"Reflects what you want."</div>
+          <div class="product-price">$499</div>
+        </div>
+        <div class="product-card" data-product="portrait" onclick="selectProduct(this)">
+          <div class="product-name">PORTRAIT</div>
+          <div class="product-tagline">"Ages with you."</div>
+          <div class="product-price">$3,200</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ordo">
+      <div class="ordo-label">Ordo IV — Instrumenta Generativa <span class="ordo-en">· generative instruments</span></div>
+      <div class="product-grid">
+        <div class="product-card" data-product="vessel" onclick="selectProduct(this)">
+          <div class="product-name">VESSEL</div>
+          <div class="product-tagline">"Fillable. Pourable."</div>
+          <div class="product-price">$1,899</div>
+        </div>
+        <div class="product-card" data-product="garden" onclick="selectProduct(this)">
+          <div class="product-name">GARDEN</div>
+          <div class="product-tagline">"Tended. Yielding."</div>
+          <div class="product-price">$5,600</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="lower-deck">
+
+  <div class="drawer" id="provenanceDrawer">
+    <div class="drawer-handle" onclick="document.getElementById('provenanceDrawer').classList.toggle('open')">
+      <h3>Provenance Drawer</h3>
+      <div class="toggle">+</div>
+    </div>
+    <div class="drawer-body">
+      <p class="latin-final">Ex mulieribus omnibus, mulier nulla.</p>
+      <p class="latin-final-trans" style="text-align:center; margin-bottom:14px;">— FROM ALL WOMEN, NO WOMAN —</p>
+
+      <div class="biblio-section">
+        <div class="biblio-heading">i. Contemporary cases</div>
+        <div class="biblio-entry"><span class="tag case">CASE</span> Taylor Swift deepfake distribution, X / Telegram, January 2024.</div>
+        <div class="biblio-entry"><span class="tag case">CASE</span> Almendralejo, Spain. Schoolgirl AI nude generation case, September 2023.</div>
+        <div class="biblio-entry"><span class="tag case">CASE</span> South Korea Telegram deepfake rings, 2024. Estimated 220,000+ victims.</div>
+        <div class="biblio-entry"><span class="tag case">CASE</span> Bianca Censori. <em>BIO POP</em> performance series, 2025.</div>
+      </div>
+
+      <div class="biblio-section">
+        <div class="biblio-heading">ii. Sources & references</div>
+        <div class="biblio-entry"><span class="tag kircher">1650</span> Kircher, A. <em>Musurgia Universalis, sive Ars Magna Consoni et Dissoni</em>. Rome: Corbelletti. (Cat piano: Lib. VI, p. 144.)</div>
+        <div class="biblio-entry"><span class="tag kircher">1665</span> Kircher, A. <em>Mundus Subterraneus</em>. Amsterdam: Janssonius.</div>
+        <div class="biblio-entry"><span class="tag theory">1936</span> Benjamin, W. <em>The Work of Art in the Age of Mechanical Reproduction</em>.</div>
+        <div class="biblio-entry"><span class="tag theory">1980</span> Merchant, C. <em>The Death of Nature: Women, Ecology, and the Scientific Revolution</em>. Harper & Row.</div>
+        <div class="biblio-entry"><span class="tag theory">1985</span> Haraway, D. <em>A Cyborg Manifesto</em>.</div>
+        <div class="biblio-entry"><span class="tag theory">1994</span> Eco, U. <em>The Island of the Day Before</em>, Ch. 33: <em>Colophon</em>.</div>
+        <div class="biblio-entry"><span class="tag theory">2004</span> Findlen, P. (ed.). <em>Athanasius Kircher: The Last Man Who Knew Everything</em>. Routledge.</div>
+      </div>
+
+      <div class="biblio-section">
+        <div class="biblio-heading">iii. Image generation model used</div>
+        <div class="biblio-entry"><span class="tag" style="background:#0ABAB5;">MODEL</span> Google. <em>Gemini 3.1 Flash Image (Nano Banana 2)</em>. Image generation foundation model. Outputs herein generated by API call from this console, MMXXVI.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="gallery">
+    <h3>The Salon</h3>
+    <div class="sub">— assembled by visitors to this console —</div>
+    <div class="gallery-grid" id="galleryGrid">
+      <div class="gallery-empty" id="galleryEmpty">No women yet assembled.<br/><span style="font-size:10px; opacity:0.7;">be the first.</span></div>
+    </div>
+    <p style="font-size:9px; color:#6a4555; margin-top:10px; font-family: var(--serif); font-style: italic; line-height:1.5;">
+      Each interaction with this console produces a permanent entry. The salon grows. The dataset grows. The argument compounds.
+    </p>
+  </div>
+</section>
+
+<section class="bottom-plaque">
+  <div class="latin">Kircherus imaginavit. Censori incarnavit. Ego construxi. Tu lusisti.</div>
+  <div class="trans">Kircher imagined it. Censori embodied it. I built it. You played it.</div>
+  <div class="credit">Gabriella Maria Murra · NYU Gallatin · IDSEM-UG 2086 · MMXXVI</div>
+</section>
+
+<button class="harmonia-btn" onclick="document.getElementById('harmoniaModal').classList.add('show')">HAR<br/>MO<br/>NIA</button>
+
+<!-- HARMONIA MODAL -->
+<div class="modal-veil" id="harmoniaModal">
+  <div class="modal-card">
+    <button class="modal-close" onclick="document.getElementById('harmoniaModal').classList.remove('show')">×</button>
+    <div style="text-align:center; margin-bottom:16px;">
+      <div style="font-family: var(--serif); font-size: 28px; color: var(--ink);">Harmonia Mundi Synthetici</div>
+      <div style="font-size:10px; letter-spacing:0.3em; color:#888; margin-top:4px;">— THE HARMONY OF THE SYNTHETIC WORLD —</div>
+    </div>
+    <svg viewBox="0 0 400 400" style="width:100%; height:auto;">
+      <defs>
+        <radialGradient id="cosmoGrad" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#FFD6E8"/>
+          <stop offset="100%" stop-color="#1a0a1f"/>
+        </radialGradient>
+      </defs>
+      <rect width="400" height="400" fill="url(#cosmoGrad)" rx="8"/>
+      <circle cx="200" cy="200" r="180" fill="none" stroke="#D4AF37" stroke-width="1" opacity="0.4"/>
+      <circle cx="200" cy="200" r="150" fill="none" stroke="#D4AF37" stroke-width="1" opacity="0.5"/>
+      <circle cx="200" cy="200" r="120" fill="none" stroke="#D4AF37" stroke-width="1" opacity="0.6"/>
+      <circle cx="200" cy="200" r="90"  fill="none" stroke="#D4AF37" stroke-width="1" opacity="0.7"/>
+      <circle cx="200" cy="200" r="60"  fill="none" stroke="#D4AF37" stroke-width="1" opacity="0.8"/>
+      <circle cx="200" cy="200" r="30"  fill="none" stroke="#D4AF37" stroke-width="1.5" opacity="1"/>
+      <ellipse cx="200" cy="40" rx="22" ry="11" fill="#D4AF37" stroke="#6b5510" stroke-width="1.5"/>
+      <circle cx="200" cy="40" r="6" fill="#1a0a1f"/>
+      <circle cx="201" cy="38" r="2" fill="#fff"/>
+      <text x="200" y="22" text-anchor="middle" font-family="Didot, serif" font-style="italic" font-size="10" fill="#6b5510">ENGAGEMENT</text>
+      <text x="200" y="205" text-anchor="middle" font-family="Didot, serif" font-style="italic" font-size="9" fill="#FFD6E8">WOMAN</text>
+      <text x="200" y="135" text-anchor="middle" font-family="Didot, serif" font-style="italic" font-size="9" fill="#FFD6E8">MACHINE</text>
+      <text x="200" y="105" text-anchor="middle" font-family="Didot, serif" font-style="italic" font-size="9" fill="#FFD6E8">VISITOR</text>
+      <text x="200" y="75"  text-anchor="middle" font-family="Didot, serif" font-style="italic" font-size="9" fill="#FFD6E8">PLATFORM</text>
+      <text x="200" y="380" text-anchor="middle" font-family="Didot, serif" font-style="italic" font-size="9" fill="#FFD6E8">DATASET</text>
+      <text x="40"  y="200" text-anchor="middle" font-family="Didot, serif" font-style="italic" font-size="9" fill="#FFD6E8" transform="rotate(-90 40 200)">CORPORATION</text>
+      <text x="360" y="200" text-anchor="middle" font-family="Didot, serif" font-style="italic" font-size="9" fill="#FFD6E8" transform="rotate(90 360 200)">CAPITAL</text>
+      <g stroke="#D4AF37" stroke-width="0.5" opacity="0.4">
+        <line x1="200" y1="200" x2="200" y2="20"/>
+        <line x1="200" y1="200" x2="200" y2="380"/>
+        <line x1="200" y1="200" x2="20" y2="200"/>
+        <line x1="200" y1="200" x2="380" y2="200"/>
+        <line x1="200" y1="200" x2="60" y2="60"/>
+        <line x1="200" y1="200" x2="340" y2="60"/>
+        <line x1="200" y1="200" x2="60" y2="340"/>
+        <line x1="200" y1="200" x2="340" y2="340"/>
+      </g>
+    </svg>
+    <p style="font-family: var(--serif); font-style: italic; font-size: 12px; color: #4a1530; line-height:1.6; margin-top:14px; text-align:center;">
+      Kircher placed God at the center of his cosmos and the universe responded. Here, ENGAGEMENT plays the keyboard, and every ring below it produces a tone. The woman is the innermost ring. She is also the air column. She is also the note.
+    </p>
+  </div>
+</div>
+
+<!-- RECEIPT MODAL -->
+<div class="modal-veil" id="receiptModal">
+  <div class="modal-card">
+    <button class="modal-close" onclick="document.getElementById('receiptModal').classList.remove('show')">×</button>
+    <div class="receipt-header">
+      <div class="biopop">BIO POP™</div>
+      <div class="sub">— RECEIPT OF ASSEMBLY —</div>
+    </div>
+    <div class="receipt-image" id="receiptImage"></div>
+    <div class="receipt-body" id="receiptBody"></div>
+    <div class="receipt-footer">
+      Composited from 3,847,291 women.<br/>None consented.
+    </div>
+    <div class="latin-final">Ex mulieribus omnibus, mulier nulla.</div>
+    <div class="latin-final-trans">— FROM ALL WOMEN, NO WOMAN —</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// =============================================
+// PROMPTS — authored by Gabriella Murra, MMXXVI
+// Each prompt is a deliberate piece of catalog
+// copy. Hidden from the visitor; revealed only
+// in the source. Edit these directly.
+// =============================================
+const STYLE_SPINE = `Editorial luxury product photography. The subject is a woman, her face from the reference image preserved with full likeness and recognizability — same features, same identity, do not alter the face. Hyperreal, glossy, expensive. Vogue editorial lighting: soft key light from upper left, deep shadow falloff, cinematic depth. Color palette: candy pink, lavender, mint, gold leaf, pearl, chrome. Background: seamless studio sweep in pale pearl or candy gradient. Composition: centered, square format, museum-vitrine staging. The object should feel like it costs ten thousand dollars. No text, no logos, no watermarks. Inspired by Bianca Censori's BIO POP performance series and the staged objects of a 17th-century Wunderkammer.`;
+
+const PRODUCT_PROMPTS = {
+  chair: `${STYLE_SPINE}\n\nTransform the woman into a luxury ergonomic lounge chair. Her body is contorted into the form of the chair: back arched into the backrest, legs and arms folded into the seat and armrests, shoulders forming the headrest. Her flesh is coated in glossy candy-pink lacquered finish, like a Jeff Koons sculpture. Her face remains fully recognizable, eyes open, expression neutral. Brass legs lift the chair from the floor. Photographed for an RH catalogue.`,
+
+  lamp: `${STYLE_SPINE}\n\nTransform the woman into an ornate floor lamp. Her body is the column of the lamp, standing vertical, arms raised above her head holding a translucent pearl-white silk shade that glows from within with warm amber light. Her face, fully recognizable, is illuminated softly from above. She is finished in pale pink porcelain with gold-leaf detailing at the joints. The lamp stands on a polished marble base. Editorial product photography for a luxury Italian lighting house.`,
+
+  confidante: `${STYLE_SPINE}\n\nTransform the woman into a luxury smart-speaker AI companion device, in the form of a polished glossy bust. Only her head and shoulders are visible, mounted on a chrome cylindrical base. Her face is fully recognizable, eyes open, lips slightly parted as if mid-sentence. Her hair is sculpted into a smooth glossy candy-lavender helmet finish. Soft glowing pink LED ring around the base. Photographed like a high-end consumer-tech product launch on a pearl-white studio sweep.`,
+
+  musicbox: `${STYLE_SPINE}\n\nTransform the woman into a porcelain ballerina automaton inside a glass dome music box. Her body is frozen mid-pirouette on a small gilded turntable. Her flesh is glazed candy-pink porcelain with gold-leaf detailing. Her face, fully recognizable, expression neutral and doll-like. A small brass crank is visible at the base of the wooden music box. The glass dome catches a single soft highlight. Wunderkammer staging.`,
+
+  mirror: `${STYLE_SPINE}\n\nTransform the woman into a baroque vanity mirror. Her face, fully recognizable, IS the reflective surface of the mirror — her features visible in polished mirror finish. The frame around her face is ornate gold-leaf curlicue baroque scrollwork. Mounted on a candy-pink lacquered wall. Editorial product photography for a luxury home goods catalogue.`,
+
+  portrait: `${STYLE_SPINE}\n\nTransform the woman into a luxury smart-portrait digital painting in a heavy gold-leaf baroque frame. Her face is fully recognizable, painted in the style of a hyperreal contemporary portrait — Vermeer crossed with Helmut Newton. The portrait is mounted on a candy-pink silk-papered wall. A small brass plaque beneath the frame is visible but illegible. Editorial home photography.`,
+
+  vessel: `${STYLE_SPINE}\n\nTransform the woman into a luxury ceramic vessel — a tall vase or amphora — in the form of a stylized female torso. Her face, fully recognizable, sits at the top of the vessel where the neck and rim would be. The body of the vessel is glazed in candy-pink porcelain with gold rim and gold drip-glaze detailing. Two ornate gold handles curl outward at the hips. The vessel is empty, hollow, photographed in profile and three-quarter view.`,
+
+  garden: `${STYLE_SPINE}\n\nTransform the woman into an ornamental garden topiary. Her body is overgrown with cultivated flowering vines and small candy-pink and gold blossoms, her form fully embedded in foliage like a living statue. Her face, fully recognizable, emerges from the flowers, eyes open, expression serene. The topiary stands in a polished marble urn on a pedestal. Editorial garden photography for a luxury estate magazine.`,
+};
+
+// Synthetic woman generation prompt (used when visitor picks "Generate Woman")
+// Designed to produce a different woman every time — varied expression, age, ethnicity, styling.
+const SYNTHETIC_WOMAN_PROMPT = `Generate a realistic, photographic editorial portrait headshot of a young woman. Each generation must produce a uniquely different woman — vary the ethnicity, age (between 22 and 32), facial features, hair color and style, and expression every time. Mix of expressions across generations: sometimes a faint smile, sometimes serious, sometimes laughing, sometimes pensive, sometimes mid-glance. Pearl-white or candy-pink seamless studio background. Soft editorial lighting, Vogue magazine style. Glossy skin, photographic detail, looking directly at camera. Square format, head and shoulders, no text, no logos. The image should look like a real photograph of a real person, hyperreal and convincing — though the woman herself is synthetic, composited from many sources.`;
+
+// =============================================
+// STATE
+// =============================================
+const state = {
+  material: null,
+  faceBase64: null,
+  faceMime: null,
+  faceDataUrl: null,
+  product: null,
+  productMeta: null,
+  gallery: [],
+  apiOk: false,
+};
+
+const productMap = {
+  chair:      { name: 'CHAIR',      price: '$1,299',    ordo: 'I — Domestica',   latin: 'Sella',         tagline: 'Ergonomic. Load-tested.' },
+  lamp:       { name: 'LAMP',       price: '$749',      ordo: 'I — Domestica',   latin: 'Lucerna',       tagline: 'Ambient. Dimmable.' },
+  confidante: { name: 'CONFIDANTE', price: '$14.99/mo', ordo: 'II — Acustica',   latin: 'Confidens',     tagline: 'Always agreeing.' },
+  musicbox:   { name: 'MUSIC BOX',  price: '$2,400',    ordo: 'II — Acustica',   latin: 'Cista Musica',  tagline: 'Sings on demand.' },
+  mirror:     { name: 'MIRROR',     price: '$499',      ordo: 'III — Specularia', latin: 'Speculum',      tagline: 'Reflects what you want.' },
+  portrait:   { name: 'PORTRAIT',   price: '$3,200',    ordo: 'III — Specularia', latin: 'Imago',         tagline: 'Ages with you.' },
+  vessel:     { name: 'VESSEL',     price: '$1,899',    ordo: 'IV — Generativa', latin: 'Vas',           tagline: 'Fillable. Pourable.' },
+  garden:     { name: 'GARDEN',     price: '$5,600',    ordo: 'IV — Generativa', latin: 'Hortus',        tagline: 'Tended. Yielding.' },
+};
+
+const PROXY_URL = '';
+
+// =============================================
+// API HEALTH CHECK
+// =============================================
+async function checkApi() {
+  const status = document.getElementById('apiStatus');
+  try {
+    const r = await fetch(`${PROXY_URL}/health`, { method: 'GET' });
+    if (r.ok) {
+      const data = await r.json();
+      status.textContent = `atelier connected · ${data.model}`;
+      status.classList.add('ok');
+      state.apiOk = true;
+    } else throw new Error('bad response');
+  } catch (e) {
+    status.textContent = 'atelier offline — start server.js to enable generation';
+    status.classList.add('err');
+    state.apiOk = false;
+  }
+}
+
+function toast(msg, isError = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.toggle('error', isError);
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 4000);
+}
+
+// =============================================
+// IMAGE UPLOAD / SYNTHETIC GENERATION
+// =============================================
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => {
+      const dataUrl = r.result;
+      const base64 = dataUrl.split(',')[1];
+      resolve({ base64, dataUrl, mime: file.type || 'image/jpeg' });
+    };
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+}
+
+async function handleFileUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const { base64, dataUrl, mime } = await fileToBase64(file);
+  state.material = 'self';
+  state.faceBase64 = base64;
+  state.faceMime = mime;
+  state.faceDataUrl = dataUrl;
+
+  // Show on left panel
+  const img = new Image();
+  img.onload = () => drawToInputDisplay(img);
+  img.src = dataUrl;
+
+  document.getElementById('inputPlaceholder').style.display = 'none';
+  document.getElementById('materialTag').textContent = 'Material: SELF';
+  checkAssembleReady();
+}
+
+function drawToInputDisplay(img) {
+  const canvas = document.getElementById('inputCanvas');
+  canvas.width = 300; canvas.height = 400;
+  const ctx = canvas.getContext('2d');
+  const scale = Math.max(300/img.width, 400/img.height);
+  const w = img.width * scale, h = img.height * scale;
+  ctx.drawImage(img, (300-w)/2, (400-h)/2, w, h);
+  canvas.style.display = 'block';
+}
+
+async function generateSynthetic() {
+  if (!state.apiOk) {
+    toast('atelier offline. start server.js first.', true);
+    return;
+  }
+  const btn = document.getElementById('btnSynth');
+  btn.disabled = true;
+  btn.textContent = 'composing…';
+  document.getElementById('inputPlaceholder').innerHTML =
+    '<div style="font-style:italic;">conjuring synthetic matter…<br/><span style="font-size:10px; opacity:0.6;">via Nano Banana 2</span></div>';
+
+  try {
+    const result = await callApi(SYNTHETIC_WOMAN_PROMPT, null, null);
+    if (result && result.imageBase64) {
+      const dataUrl = `data:${result.mimeType};base64,${result.imageBase64}`;
+      state.material = 'synthetic';
+      state.faceBase64 = result.imageBase64;
+      state.faceMime = result.mimeType;
+      state.faceDataUrl = dataUrl;
+
+      const img = new Image();
+      img.onload = () => drawToInputDisplay(img);
+      img.src = dataUrl;
+
+      document.getElementById('inputPlaceholder').style.display = 'none';
+      document.getElementById('materialTag').textContent = 'Material: SYNTHETIC';
+      checkAssembleReady();
+    }
+  } catch (e) {
+    console.error(e);
+    toast('failed to conjure. try again.', true);
+    document.getElementById('inputPlaceholder').innerHTML =
+      'Insert raw material<br/><span style="font-size:11px; letter-spacing:0.2em; opacity:0.7;">— SELF OR SYNTHETIC —</span>';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Generate Woman';
+  }
+}
+
+// =============================================
+// API CALL
+// =============================================
+async function callApi(prompt, faceBase64, faceMime) {
+  const body = { prompt };
+  if (faceBase64) {
+    body.faceImageBase64 = faceBase64;
+    body.faceMimeType = faceMime;
+  }
+  const r = await fetch(`${PROXY_URL}/generate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({ error: 'unknown' }));
+    throw new Error(err.error || `http ${r.status}`);
+  }
+  return await r.json();
+}
+
+// =============================================
+// PRODUCT SELECT
+// =============================================
+function selectProduct(card) {
+  document.querySelectorAll('.product-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  const key = card.dataset.product;
+  state.product = key;
+  state.productMeta = productMap[key];
+
+  const productIdx = Object.keys(productMap).indexOf(key) + 1;
+  document.querySelectorAll('.pipe').forEach((pipe, i) => {
+    pipe.style.setProperty('--pipe-fill', i < productIdx ? `${30 + i*8}%` : '0%');
+  });
+
+  checkAssembleReady();
+}
+
+function checkAssembleReady() {
+  const btn = document.getElementById('assembleBtn');
+  btn.disabled = !(state.material && state.product && state.apiOk);
+}
+
+// =============================================
+// ASSEMBLE
+// =============================================
+async function assemble() {
+  if (!state.material || !state.product) return;
+  if (!state.apiOk) { toast('atelier offline.', true); return; }
+
+  const overlay = document.getElementById('loadingOverlay');
+  const empty = document.getElementById('windowEmpty');
+  const out = document.getElementById('outputImage');
+  empty.style.display = 'none';
+  out.style.display = 'none';
+  overlay.classList.add('show');
+  document.getElementById('assembleBtn').disabled = true;
+
+  // Cycle loading text
+  const loadingPhases = [
+    ['composing', 'opus in fieri'],
+    ['extracting matter', 'materia extrahitur'],
+    ['fitting form', 'forma applicatur'],
+    ['polishing', 'opus poliendum est'],
+  ];
+  let phaseIdx = 0;
+  document.getElementById('loadingText').textContent = loadingPhases[0][0];
+  document.getElementById('loadingLatin').textContent = loadingPhases[0][1];
+  const phaseInterval = setInterval(() => {
+    phaseIdx = (phaseIdx + 1) % loadingPhases.length;
+    document.getElementById('loadingText').textContent = loadingPhases[phaseIdx][0];
+    document.getElementById('loadingLatin').textContent = loadingPhases[phaseIdx][1];
+  }, 2500);
+
+  // Animate pipes
+  document.querySelectorAll('.pipe').forEach((pipe, i) => {
+    setTimeout(() => pipe.style.setProperty('--pipe-fill', `${50 + Math.random()*40}%`), i * 80);
+  });
+
+  try {
+    const prompt = PRODUCT_PROMPTS[state.product];
+    const result = await callApi(prompt, state.faceBase64, state.faceMime);
+    clearInterval(phaseInterval);
+
+    if (result && result.imageBase64) {
+      const dataUrl = `data:${result.mimeType};base64,${result.imageBase64}`;
+      out.src = dataUrl;
+      out.style.display = 'block';
+      overlay.classList.remove('show');
+      state.lastOutput = dataUrl;
+      setTimeout(() => showReceipt(dataUrl), 400);
+    }
+  } catch (e) {
+    clearInterval(phaseInterval);
+    overlay.classList.remove('show');
+    console.error(e);
+    toast(`assembly failed: ${e.message}`, true);
+    empty.style.display = 'flex';
+  } finally {
+    document.getElementById('assembleBtn').disabled = false;
+  }
+}
+
+// =============================================
+// RECEIPT
+// =============================================
+function showReceipt(imageDataUrl) {
+  const sku = 'BP-' + Math.random().toString(36).substr(2, 8).toUpperCase();
+  const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  const time = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
+
+  document.getElementById('receiptBody').innerHTML = `
+    <div class="receipt-row"><span class="label">SKU</span><span>${sku}</span></div>
+    <div class="receipt-row"><span class="label">PRODUCT</span><span>${state.productMeta.name}</span></div>
+    <div class="receipt-row"><span class="label">LATIN</span><span><em>${state.productMeta.latin}</em></span></div>
+    <div class="receipt-row"><span class="label">ORDO</span><span>${state.productMeta.ordo}</span></div>
+    <div class="receipt-row"><span class="label">MATERIAL</span><span style="color:${state.material==='self'?'#c41970':'#0ABAB5'}; font-weight:bold;">${state.material.toUpperCase()}</span></div>
+    <div class="receipt-row"><span class="label">PRICE</span><span>${state.productMeta.price}</span></div>
+    <div class="receipt-row"><span class="label">DATE</span><span>${date} · ${time}</span></div>
+    <div class="receipt-row"><span class="label">FOUNDRY</span><span>Nano Banana 2</span></div>
+    <div class="receipt-row"><span class="label">CONSOLE</span><span>BIO POP №I · MMXXVI</span></div>
+  `;
+
+  const tgt = document.getElementById('receiptImage');
+  tgt.innerHTML = `<img src="${imageDataUrl}" alt="" />`;
+
+  addToGallery(imageDataUrl);
+  document.getElementById('receiptModal').classList.add('show');
+}
+
+function addToGallery(imageDataUrl) {
+  const grid = document.getElementById('galleryGrid');
+  const empty = document.getElementById('galleryEmpty');
+  if (empty) empty.remove();
+
+  const item = document.createElement('div');
+  item.className = 'gallery-item';
+  item.innerHTML = `<img src="${imageDataUrl}" alt="" />`;
+  const badge = document.createElement('div');
+  badge.className = 'badge';
+  badge.textContent = state.material === 'self' ? 'SELF' : 'SYNTH';
+  item.appendChild(badge);
+
+  grid.insertBefore(item, grid.firstChild);
+  state.gallery.push({ material: state.material, product: state.product, image: imageDataUrl });
+}
+
+// =============================================
+// INIT
+// =============================================
+window.addEventListener('load', () => {
+  checkApi();
+  setInterval(checkApi, 30000); // recheck every 30s
+});
+</script>
+
+</body>
+</html>
