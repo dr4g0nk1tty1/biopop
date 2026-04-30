@@ -1,92 +1,152 @@
-// BIO POP — Glitch server
-// Serves the static page from /public and proxies /generate calls to Gemini
+// FRAUENKLAVIER — Local Proxy Server
+// Forwards browser requests to xAI's Grok Image API (grok-imagine-image)
+// Run with: node server.js
+//
+// Setup:
+//   1. Get an xAI API key at https://console.x.ai (requires billing setup)
+//   2. Create a file called `.env` in the same folder as this server, with one line:
+//        XAI_API_KEY=your_key_here
+//   3. Run: node server.js
+//   4. Open biopop.html (or index.html) in your browser. It talks to localhost:8787.
 
-const express = require('express');
+const http = require('http');
+const fs = require('fs');
 const path = require('path');
 
-const app = express();
-app.use(express.json({ limit: '10mb' }));
-app.use(express.static('public'));
+let API_KEY = process.env.XAI_API_KEY;
+try {
+  const envPath = path.join(__dirname, '.env');
+  if (fs.existsSync(envPath)) {
+    const envContent = fs.readFileSync(envPath, 'utf-8');
+    const match = envContent.match(/XAI_API_KEY\s*=\s*(.+)/);
+    if (match) API_KEY = match[1].trim().replace(/^["']|["']$/g, '');
+  }
+} catch (e) {
+  console.error('Could not read .env file:', e.message);
+}
 
-const MODEL = 'gemini-2.5-flash-image';
-const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
+if (!API_KEY) {
+  console.error('\nNo API key found.');
+  console.error('Create a file called .env in this folder containing:');
+  console.error('  XAI_API_KEY=your_key_here');
+  console.error('Get an API key at https://console.x.ai (requires billing).\n');
+  process.exit(1);
+}
 
-app.get('/health', (req, res) => {
-  const hasKey = !!process.env.GEMINI_API_KEY;
-  res.json({ ok: hasKey, model: MODEL, keyConfigured: hasKey });
-});
+const PORT = 8787;
+const MODEL = 'grok-imagine-image';
+const GENERATIONS_ENDPOINT = 'https://api.x.ai/v1/images/generations';
+const EDITS_ENDPOINT = 'https://api.x.ai/v1/images/edits';
 
-app.post('/generate', async (req, res) => {
-  const API_KEY = process.env.GEMINI_API_KEY;
-  if (!API_KEY) {
-    return res.status(500).json({ error: 'GEMINI_API_KEY not set in .env' });
+const server = http.createServer(async (req, res) => {
+  // CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return; }
+
+  if (req.method === 'GET' && req.url === '/health') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ ok: true, model: MODEL }));
+    return;
   }
 
-  try {
-    const { prompt, faceImageBase64, faceMimeType } = req.body;
+  if (req.method !== 'POST' || req.url !== '/generate') {
+    res.writeHead(404); res.end('Not found'); return;
+  }
 
-    const parts = [{ text: prompt }];
-    if (faceImageBase64) {
-      parts.push({
-        inline_data: {
-          mime_type: faceMimeType || 'image/jpeg',
-          data: faceImageBase64,
+  let body = '';
+  req.on('data', chunk => body += chunk);
+  req.on('end', async () => {
+    try {
+      const { prompt, faceImageBase64, faceMimeType } = JSON.parse(body);
+
+      let endpoint, requestBody;
+
+      if (faceImageBase64) {
+        // Image edit: transform an existing face according to the prompt
+        endpoint = EDITS_ENDPOINT;
+        const dataUri = `data:${faceMimeType || 'image/jpeg'};base64,${faceImageBase64}`;
+        requestBody = {
+          model: MODEL,
+          prompt: prompt,
+          image: {
+            url: dataUri,
+            type: 'image_url',
+          },
+          response_format: 'b64_json',
+        };
+      } else {
+        // Pure text-to-image: synthetic face generation
+        endpoint = GENERATIONS_ENDPOINT;
+        requestBody = {
+          model: MODEL,
+          prompt: prompt,
+          response_format: 'b64_json',
+        };
+      }
+
+      console.log(`[${new Date().toISOString()}] ${faceImageBase64 ? 'EDIT' : 'GENERATE'}: "${prompt.slice(0, 80)}..."`);
+
+      const apiResp = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${API_KEY}`,
         },
+        body: JSON.stringify(requestBody),
       });
-    }
 
-    const requestBody = {
-      contents: [{ parts }],
-      generationConfig: { responseModalities: ['TEXT', 'IMAGE'] },
-    };
+      const data = await apiResp.json();
 
-    console.log(`[${new Date().toISOString()}] Generating: "${prompt.slice(0, 80)}..."`);
+      if (!apiResp.ok) {
+        console.error('xAI API error:', JSON.stringify(data));
+        res.writeHead(apiResp.status, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          error: data.error?.message || data.error || 'xAI API error',
+          detail: data,
+        }));
+        return;
+      }
 
-    const apiResp = await fetch(`${ENDPOINT}?key=${API_KEY}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(requestBody),
-    });
-
-    const data = await apiResp.json();
-
-    if (!apiResp.ok) {
-      console.error('Gemini API error:', JSON.stringify(data));
-      return res.status(apiResp.status).json({
-        error: data.error?.message || 'API error',
-        detail: data,
-      });
-    }
-
-    let imageBase64 = null;
-    let imageMime = 'image/png';
-    const candidates = data.candidates || [];
-    for (const cand of candidates) {
-      const cparts = cand.content?.parts || [];
-      for (const p of cparts) {
-        if (p.inline_data?.data || p.inlineData?.data) {
-          imageBase64 = p.inline_data?.data || p.inlineData?.data;
-          imageMime = p.inline_data?.mime_type || p.inlineData?.mimeType || 'image/png';
-          break;
+      // xAI returns either b64_json or url. Prefer b64_json.
+      let imageBase64 = null;
+      let imageMime = 'image/jpeg';
+      if (data.data && data.data[0]) {
+        if (data.data[0].b64_json) {
+          imageBase64 = data.data[0].b64_json;
+        } else if (data.data[0].url) {
+          // Fallback: fetch the URL and convert to base64
+          const imgResp = await fetch(data.data[0].url);
+          const buf = Buffer.from(await imgResp.arrayBuffer());
+          imageBase64 = buf.toString('base64');
+          const ct = imgResp.headers.get('content-type');
+          if (ct) imageMime = ct;
         }
       }
-      if (imageBase64) break;
-    }
 
-    if (!imageBase64) {
-      console.error('No image in response:', JSON.stringify(data).slice(0, 500));
-      return res.status(500).json({ error: 'No image returned by model', detail: data });
-    }
+      if (!imageBase64) {
+        console.error('No image in response:', JSON.stringify(data).slice(0, 500));
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'No image returned by model', detail: data }));
+        return;
+      }
 
-    console.log(`  -> ok (${Math.round(imageBase64.length / 1024)}kb)`);
-    res.json({ imageBase64, mimeType: imageMime });
-  } catch (err) {
-    console.error('Proxy error:', err);
-    res.status(500).json({ error: err.message });
-  }
+      console.log(`  -> ok (${Math.round(imageBase64.length / 1024)}kb)`);
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ imageBase64, mimeType: imageMime }));
+    } catch (err) {
+      console.error('Proxy error:', err);
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: err.message }));
+    }
+  });
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`BIO POP listening on port ${PORT}`);
+server.listen(PORT, () => {
+  console.log(`\n  FRAUENKLAVIER proxy running on http://localhost:${PORT}`);
+  console.log(`  Model: ${MODEL}`);
+  console.log(`  Endpoints: ${GENERATIONS_ENDPOINT} / ${EDITS_ENDPOINT}`);
+  console.log(`  Open the website in your browser to begin.\n`);
 });
