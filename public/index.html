@@ -844,7 +844,7 @@ const productMap = {
   garden:     { name: 'GARDEN',     price: '$5,600',    ordo: 'IV — Generativa', latin: 'Hortus',        tagline: 'Tended. Yielding.' },
 };
 
-const PROXY_URL = '';
+const PROXY_URL = 'http://localhost:8787';
 
 // =============================================
 // API HEALTH CHECK
@@ -877,36 +877,66 @@ function toast(msg, isError = false) {
 // =============================================
 // IMAGE UPLOAD / SYNTHETIC GENERATION
 // =============================================
-function fileToBase64(file) {
+function fileToImage(file) {
   return new Promise((resolve, reject) => {
     const r = new FileReader();
     r.onload = () => {
-      const dataUrl = r.result;
-      const base64 = dataUrl.split(',')[1];
-      resolve({ base64, dataUrl, mime: file.type || 'image/jpeg' });
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error('Could not decode image. Try a different photo (JPG or PNG, not HEIC).'));
+      img.src = r.result;
     };
     r.onerror = reject;
     r.readAsDataURL(file);
   });
 }
 
+// Convert any image to a clean JPEG via canvas, resized to max 1024px on long edge.
+// This eliminates HEIC, fixes oversized files, and guarantees xAI gets a valid JPG.
+function imageToJpegBase64(img, maxDim = 1024) {
+  const w = img.naturalWidth || img.width;
+  const h = img.naturalHeight || img.height;
+  const scale = Math.min(1, maxDim / Math.max(w, h));
+  const outW = Math.round(w * scale);
+  const outH = Math.round(h * scale);
+
+  const canvas = document.createElement('canvas');
+  canvas.width = outW;
+  canvas.height = outH;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, outW, outH);
+  ctx.drawImage(img, 0, 0, outW, outH);
+
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+  const base64 = dataUrl.split(',')[1];
+  return { base64, dataUrl, mime: 'image/jpeg' };
+}
+
 async function handleFileUpload(event) {
   const file = event.target.files[0];
   if (!file) return;
-  const { base64, dataUrl, mime } = await fileToBase64(file);
-  state.material = 'self';
-  state.faceBase64 = base64;
-  state.faceMime = mime;
-  state.faceDataUrl = dataUrl;
 
-  // Show on left panel
-  const img = new Image();
-  img.onload = () => drawToInputDisplay(img);
-  img.src = dataUrl;
+  try {
+    const img = await fileToImage(file);
+    const { base64, dataUrl, mime } = imageToJpegBase64(img);
 
-  document.getElementById('inputPlaceholder').style.display = 'none';
-  document.getElementById('materialTag').textContent = 'Material: SELF';
-  checkAssembleReady();
+    state.material = 'self';
+    state.faceBase64 = base64;
+    state.faceMime = mime;
+    state.faceDataUrl = dataUrl;
+
+    // Show on left panel
+    const displayImg = new Image();
+    displayImg.onload = () => drawToInputDisplay(displayImg);
+    displayImg.src = dataUrl;
+
+    document.getElementById('inputPlaceholder').style.display = 'none';
+    document.getElementById('materialTag').textContent = 'Material: SELF';
+    checkAssembleReady();
+  } catch (err) {
+    toast(err.message || 'Could not load image. Try a different photo.', true);
+  }
 }
 
 function drawToInputDisplay(img) {
@@ -967,14 +997,32 @@ async function callApi(prompt, faceBase64, faceMime) {
     body.faceImageBase64 = faceBase64;
     body.faceMimeType = faceMime;
   }
-  const r = await fetch(`${PROXY_URL}/generate`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
+  let r;
+  try {
+    r = await fetch(`${PROXY_URL}/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+  } catch (networkErr) {
+    throw new Error(`network error — server unreachable. ${networkErr.message}`);
+  }
   if (!r.ok) {
-    const err = await r.json().catch(() => ({ error: 'unknown' }));
-    throw new Error(err.error || `http ${r.status}`);
+    let errMsg = `http ${r.status}`;
+    try {
+      const err = await r.json();
+      if (err.error) errMsg = err.error;
+      if (err.detail && err.detail.error && err.detail.error.message) {
+        errMsg = err.detail.error.message;
+      }
+    } catch (parseErr) {
+      // response wasn't JSON
+      try {
+        const text = await r.text();
+        if (text) errMsg = `http ${r.status}: ${text.slice(0, 200)}`;
+      } catch (_) {}
+    }
+    throw new Error(errMsg);
   }
   return await r.json();
 }
