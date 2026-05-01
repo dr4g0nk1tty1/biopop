@@ -1,4 +1,4 @@
-// BIOPOP — Server (Render deploy)
+// FRAUENKLAVIER — Server (Render deploy)
 // Serves the static page from /public AND proxies /generate to xAI's Grok Image API
 // Render auto-runs this via package.json start script
 
@@ -75,17 +75,35 @@ app.post('/generate', async (req, res) => {
 
     let imageBase64 = null;
     let imageMime = 'image/jpeg';
+
+    // Log shape of response so we can see what we're working with
+    console.log('Response shape:', JSON.stringify(data).slice(0, 600));
+
+    // Try multiple known response shapes
     if (data.data && data.data[0]) {
-      if (data.data[0].b64_json) {
-        imageBase64 = data.data[0].b64_json;
-      } else if (data.data[0].url) {
-        // Fallback: fetch the URL and convert to base64
-        const imgResp = await fetch(data.data[0].url);
+      const first = data.data[0];
+      if (first.b64_json) {
+        imageBase64 = first.b64_json;
+      } else if (first.url) {
+        // Fetch the URL and convert to base64
+        const imgResp = await fetch(first.url);
         const buf = Buffer.from(await imgResp.arrayBuffer());
         imageBase64 = buf.toString('base64');
         const ct = imgResp.headers.get('content-type');
         if (ct) imageMime = ct;
+      } else if (first.image) {
+        imageBase64 = first.image;
       }
+    } else if (data.url) {
+      const imgResp = await fetch(data.url);
+      const buf = Buffer.from(await imgResp.arrayBuffer());
+      imageBase64 = buf.toString('base64');
+      const ct = imgResp.headers.get('content-type');
+      if (ct) imageMime = ct;
+    } else if (data.b64_json) {
+      imageBase64 = data.b64_json;
+    } else if (data.image) {
+      imageBase64 = data.image;
     }
 
     if (!imageBase64) {
